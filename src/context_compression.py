@@ -2,7 +2,7 @@ from langchain_core.documents import Document
 from typing import List
 import copy
 
-from src.llm_client import LocalLLM
+from src.llm_client import GroqLLM
 
 
 class ContextCompressor:
@@ -11,7 +11,7 @@ class ContextCompressor:
     Extracts only the most relevant sentences for a query.
     """
 
-    def __init__(self, llm: LocalLLM, max_chars: int = 1500):
+    def __init__(self, llm: GroqLLM, max_chars: int = 1500):
         self.llm = llm
         self.max_chars = max_chars
 

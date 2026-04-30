@@ -5,7 +5,7 @@ from src.chunking import Chunking
 from src.context_compression import ContextCompressor
 from src.documents_ingestion import DataIngestion
 from src.generator_with_citations import RAGGenerator
-from src.llm_client import LocalLLM
+from src.llm_client import GroqLLM
 from src.query_transformer import QueryTransformer
 from src.reranker import ReRanker
 from src.retrieval import HybridRetriever
@@ -112,7 +112,7 @@ class RAGPipeline:
             if self.verbose:
                 print("Re-ranker disabled.")
 
-        self.llm = LocalLLM()
+        self.llm = GroqLLM()
 
         if self.enable_compression:
             self.compressor = ContextCompressor(self.llm)
@@ -124,7 +124,8 @@ class RAGPipeline:
                 print("Context compression disabled.")
 
         self.generator = RAGGenerator()
-
+        self.generator.llm=self.llm
+ 
         if self.verbose:
             print("[MODELS] Ready.")
 

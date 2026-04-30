@@ -1,7 +1,7 @@
 from typing import List
 from langchain_core.documents import Document
 
-from src.llm_client import LocalLLM
+from src.llm_client import GroqLLM
 
 
 class RAGGenerator:
@@ -15,7 +15,7 @@ class RAGGenerator:
         max_content_chars: int = 6000,
     ):
         print("Initializing Local RAG Generator (Ollama)")
-        self.llm = LocalLLM()
+        self.llm = GroqLLM()
         self.max_content_chars = max_content_chars
         print("RAG Generator Ready")
 

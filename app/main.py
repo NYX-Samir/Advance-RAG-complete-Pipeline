@@ -36,6 +36,10 @@ def startup_event():
     global pipeline
     logger.info("Starting RAG API")
     
+    if not os.path.exists("./data"):
+        os.makedirs("./data")
+        logger.warning("Data directory created dynamically.")
+        
     try:
         pipeline=RAGPipeline(
             data_paths=["./data"],
@@ -46,7 +50,8 @@ def startup_event():
             top_k=5,
             verbose=False     
         )
-        
+
+
         start=time.time()
         pipeline.build_index(rebuild=REBUILD_INDEX_ON_STARTUP)
         logger.info(f"Index ready in {time.time() - start:.2f}s")
@@ -55,7 +60,7 @@ def startup_event():
         pipeline.load_models()
         logger.info(f"Models loaded in {time.time() - start:.2f}s")
         
-        logger.info("RAG API startup complete")
+        logger.info("RAG API startup complete with Groq backend")
         
     except Exception as e:
         logger.info("Startup failed")
