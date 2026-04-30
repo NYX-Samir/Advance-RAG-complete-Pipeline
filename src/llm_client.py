@@ -1,34 +1,27 @@
 import os
-import requests
+from groq import Groq
+from dotenv import load_dotenv
 
+load_dotenv()
 
-class LocalLLM:
-    def __init__(
-        self,
-        host: str | None = None,
-        model: str = "llama3.2"
-    ):
-        self.host = host or os.getenv(
-            "OLLAMA_BASE_URL",
-            "http://localhost:11434"
-        )
-
-        self.url = f"{self.host}/api/generate"
+class GroqLLM:
+    def __init__(self, model: str = "llama-3.3-70b-versatile"):
+        self.api_key = os.getenv("GROQ_API_KEY")
+        if not self.api_key:
+            raise ValueError("GROQ_API_KEY not found. Set it in your AWS Environment/Secrets.")
+        
+        self.client = Groq(api_key=self.api_key)
         self.model = model
-
-        print(f"LocalLLM initialized")
-        print(f"Model: {self.model}")
-        print(f"Ollama URL: {self.url}")
+        print(f"GroqLLM initialized with model: {self.model}")
 
     def generate(self, prompt: str) -> str:
-        payload = {
-            "model": self.model,
-            "prompt": prompt,
-            "stream": False
-        }
-
-        r = requests.post(self.url, json=payload, timeout=300)
-        r.raise_for_status()
-
-        data = r.json()
-        return data.get("response", "").strip()
+        try:
+            chat_completion = self.client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model=self.model,
+                temperature=0.1,
+            )
+            return chat_completion.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"Groq API Error: {e}")
+            return ""

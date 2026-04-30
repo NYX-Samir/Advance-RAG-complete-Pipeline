@@ -1,13 +1,13 @@
-
+#Libraries
 from langchain_community.document_loaders import (
     PyPDFLoader, TextLoader, Docx2txtLoader, DirectoryLoader,
     UnstructuredHTMLLoader, CSVLoader
 )
-
 from langchain_core.documents import Document
 from typing import List
 from pathlib import Path
 import re
+
 
 class DataIngestion:
     
@@ -122,3 +122,5 @@ class DataIngestion:
             raise RuntimeError("No documents loaded. Check PDF dependencies.")
 
         return all_docs
+
+

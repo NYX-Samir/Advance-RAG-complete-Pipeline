@@ -2,4 +2,4 @@ Config                         Recall@5   Precision@5   MRR    Latency
 Hybrid + Rerank + Compress     0.9        0.360         0.867  0.95s
 Hybrid (No Rerank)             0.6        0.240         0.800  0.04s
 Hybrid (No Compression)        0.900      0.360         0.867  0.92
-No Rerank + No Compression     0.6        0.240         0.800  0.04  
+No Rerank + No Compression     0.6        0.240         0.800  0.04 
