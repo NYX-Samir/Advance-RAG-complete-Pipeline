@@ -73,12 +73,22 @@ class EmbeddingStore:
             )
 
 
-        print("Creating new Chroma database...")
-        vectordb = Chroma.from_documents(
-            documents=chunks,
-            embedding=self.embeddings,
-            persist_directory=persist_directory,
-            collection_name=collection_name,
-        )
+        print(f"Creating new Chroma database with {len(chunks)} chunks...")
+        BATCH_SIZE = 5000 
+        vectordb = None
+        
+        for i in range(0, len(chunks), BATCH_SIZE):
+            batch = chunks[i : i + BATCH_SIZE]
+            print(f"Inserting batch {i//BATCH_SIZE + 1} (Size: {len(batch)} chunks)...")
+            
+            if vectordb is None:
+                vectordb = Chroma.from_documents(
+                    documents=batch,
+                    embedding=self.embeddings,
+                    persist_directory=persist_directory,
+                    collection_name=collection_name,
+                )
+            else:
+                vectordb.add_documents(documents=batch)
 
         return vectordb

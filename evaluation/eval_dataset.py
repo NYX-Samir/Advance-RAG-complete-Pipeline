@@ -19,7 +19,7 @@ EVALUATION_DATASET = [
         "query": "What actions are taken if an employee violates IT security policy?",
         "relevant_uids": {
             "data\\It Policy\\Information-Security-Policy.pdf::page=15::hash=a26da9708014a5972480518dfe4d1194",
-            " data\\It Policy\\Information-Technology-Cyber-Security-Policy.pdf::page=3::hash=be5539e23eae5b69670e4c2f2f55c3da",
+            "data\\It Policy\\Information-Technology-Cyber-Security-Policy.pdf::page=3::hash=be5539e23eae5b69670e4c2f2f55c3da",  # <-- Space yahan se hata diya hai
         },
     },
     {
@@ -37,4 +37,3 @@ EVALUATION_DATASET = [
         },
     },
 ]
-
