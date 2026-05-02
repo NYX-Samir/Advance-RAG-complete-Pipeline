@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: rag-fastapi
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./chroma_db:/app/chroma_db
+    environment:
+      - DATA_PATH=${DATA_PATH}
+      - CHROMA_DIR=${CHROMA_DIR}
+      - ENABLE_RERANK=${ENABLE_RERANK}
+      - ENABLE_COMPRESSION=${ENABLE_COMPRESSION}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    restart: always
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    container_name: rag-streamlit
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://api:8000 
+    depends_on:
+      - api
+    restart: always
