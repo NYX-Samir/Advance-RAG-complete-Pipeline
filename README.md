@@ -4,7 +4,7 @@ This repository contains an end-to-end Retrieval-Augmented Generation (RAG) syst
 
 The project implements a modular RAG pipeline, exposes it via a FastAPI backend, serves an interactive Streamlit frontend, and utilizes the Groq API for ultra-low latency inference. The entire system is containerized using Docker and deployed on Hugging Face Spaces.
 
-## 🚀 Live Demo
+## Live Demo
 * **Interactive UI (Streamlit):** https://huggingface.co/spaces/nyx-samir/rag-streamlit-ui
 * **Backend API (FastAPI):** https://huggingface.co/spaces/nyx-samir/rag-fastapi-backend
 
