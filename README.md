@@ -1,156 +1,127 @@
 # Advanced Retrieval-Augmented Generation (RAG) Pipeline
 
-This repository contains an end-to-end Retrieval-Augmented Generation (RAG) system designed with a strong focus on applied LLM systems, retrieval quality, and deployment readiness.
+This repository contains an end-to-end Retrieval-Augmented Generation (RAG) system designed with a strong focus on applied LLM systems, retrieval quality, microservices architecture, and production-ready cloud deployment.
 
-The project implements a modular RAG pipeline, exposes it via a FastAPI service, and supports local LLM inference using Ollama, making it suitable for experimentation, evaluation, and production-oriented learning.
+The project implements a modular RAG pipeline, exposes it via a FastAPI backend, serves an interactive Streamlit frontend, and utilizes the Groq API for ultra-low latency inference. The entire system is containerized using Docker and deployed on Hugging Face Spaces.
+
+## 🚀 Live Demo
+* **Interactive UI (Streamlit):** https://huggingface.co/spaces/nyx-samir/rag-streamlit-ui
+* **Backend API (FastAPI):** https://huggingface.co/spaces/nyx-samir/rag-fastapi-backend
 
 ## Key Highlights
 
-* End-to-end RAG pipeline with hybrid retrieval, re-ranking, and context compression
-* FastAPI-based backend service for querying and index management
-* Dockerized for reproducible local deployment
-* Local LLM inference using Ollama, with a backend-agnostic design
-* Retrieval evaluation using Recall@K, Precision@K, and MRR
-* Modular, extensible codebase suitable for further experimentation
+* **Cloud-Native Architecture:** Deployed as independent microservices (Backend + Frontend) on Hugging Face Spaces using Docker.
+* **Ultra-Fast Generation:** Integrated with **Groq API** (Llama 3 / Mixtral) replacing local Ollama for production-grade speed.
+* **Advanced Retrieval:** Hybrid retrieval (Dense + BM25), Cross-Encoder Re-ranking, and LLM-based Context Compression.
+* **Container Orchestration:** Fully reproducible local environment using `docker-compose`.
+* **Large File Management:** Vector databases (ChromaDB) and source PDFs tracked and deployed via **Git LFS**.
 
 ## Architecture Overview
 
 **High-level flow:**
-
-* **Data Ingestion:** Load and preprocess documents from multiple formats.
-* **Chunking:** Split documents into manageable, retrieval-friendly chunks.
-* **Indexing:** Store embeddings in a vector database (ChromaDB).
-* **Retrieval (Hybrid):** Combine dense embedding search with BM25 sparse retrieval.
-* **Re-ranking (Optional):** Use cross-encoder models to improve top-K relevance.
-* **Context Compression (Optional):** Use an LLM to extract only query-relevant sentences.
-* **Generation:** Generate answers using a local LLM backend (Ollama).
-* **Evaluation:** Measure retrieval quality and latency trade-offs.
+1. **Data Ingestion & Chunking:** Load PDFs/documents and split them into retrieval-friendly chunks.
+2. **Indexing:** Store embeddings in a persisted vector database (ChromaDB).
+3. **Hybrid Retrieval:** Combine dense embedding search with BM25 sparse retrieval.
+4. **Re-ranking:** Use cross-encoder models to re-order and improve top-K relevance.
+5. **Context Compression:** Extract only query-relevant sentences to optimize prompt context window.
+6. **Generation:** Generate high-quality answers using **Groq API** for near-instant inference.
+7. **Microservices Communication:** Streamlit UI communicates seamlessly with the FastAPI backend over REST.
 
 ## Features
 
-1.  **Data Ingestion**
-    * Supports PDF, TXT, CSV, and HTML documents
-    * Metadata preserved for downstream attribution
-
-2.  **Hybrid Retrieval**
-    * Dense retrieval using sentence embeddings
-    * Sparse retrieval using BM25
-    * Improves recall compared to single-retriever setups
-
-3.  **Cross-Encoder Re-Ranking**
-    * Re-orders retrieved chunks using cross-encoder models
-    * Significantly improves Recall@K and MRR
-
-4.  **Context Compression**
-    * LLM-based sentence extraction
-    * Reduces prompt size without degrading retrieval quality
-    * Includes fallback logic to avoid recall loss
-
-5.  **FastAPI Service**
-    * `/query` – query the RAG pipeline
-    * `/health` – health check endpoint
-    * `/rebuild-index` – rebuild vector index on demand
-
-6.  **Dockerized Deployment**
-    * API containerized for reproducible local execution
-    * Environment-based configuration via `.env`
+1. **Hybrid Retrieval & Cross-Encoder Re-Ranking**
+   * Dense (Embeddings) + Sparse (BM25) retrieval improves base recall.
+   * Cross-encoder significantly improves Recall@K and MRR.
+2. **Context Compression**
+   * Reduces prompt size and token cost without degrading retrieval quality.
+3. **Microservices API & UI**
+   * **FastAPI:** Core backend handling LLM logic and ChromaDB operations.
+   * **Streamlit:** Clean, interactive, chat-like frontend with latency tracking and health checks.
+4. **Dockerized Orchestration**
+   * `docker-compose.yml` setup for 1-click local testing.
+   * Individual `Dockerfile` setups optimized for Hugging Face Spaces (Port 7860).
 
 ## Evaluation Results
 
-The system was evaluated across multiple configurations:
+The system was rigorously evaluated on a custom dataset. The results highlight the significant quality-latency trade-offs introduced by architectural choices:
 
+### 1. Retrieval Performance
 | Configuration | Recall@5 | Precision@5 | MRR | Latency |
 | :--- | :--- | :--- | :--- | :--- |
-| **Hybrid + Re-rank + Compression** | 0.90 | 0.36 | 0.867 | ~0.95s |
-| **Hybrid (No Re-rank)** | 0.60 | 0.24 | 0.80 | ~0.04s |
-| **Hybrid (No Compression)** | 0.90 | 0.36 | 0.867 | ~0.92s |
+| **Hybrid + Re-rank** | **0.800** | **0.320** | **0.650** | ~0.95s |
+| **Hybrid (No Re-rank)** | 0.300 | 0.120 | 0.440 | **~0.08s** |
 
-These results highlight the quality–latency trade-off introduced by re-ranking and compression.
+*Insight: Integrating a Cross-Encoder for re-ranking yielded a ~2.6x improvement in Recall@5, validating the necessity of re-ranking for complex policy documents, despite a ~870ms latency penalty.*
 
+### 2. Context Compression & Cost Efficiency
+To optimize LLM prompt context and reduce token expenditure, an LLM-based context compressor was utilized before generation.
+
+* **Original Context Size:** 18,413 characters
+* **Compressed Context Size:** 3,826 characters
+* **Tokens Saved per Query:** ~3,646 tokens
+* **Overall Cost Reduction:** **79.22%**
+
+*Insight: The compression step reduced API token payload by nearly 80%, drastically cutting down potential inference costs while maintaining high answer relevance. The generation time saw a minimal shift (1.02s without compression vs. 1.24s with compression) due to the preprocessing overhead.*
 ## Project Structure
 
 ```plaintext
 .
 ├── app/
 │   ├── main.py          # FastAPI application entrypoint
+│   ├── app.py           # Streamlit UI frontend
 │   ├── schemas.py       # Request / response schemas
 │   └── logger.py        # Centralized logging
 │
-├── src/
-│   ├── data_ingestion.py
-│   ├── chunking.py
-│   ├── vector_embedding.py
-│   ├── retrieval.py
-│   ├── reranking.py
-│   ├── context_compression.py
-│   ├── evaluation_metrics.py
-│   ├── rag_pipeline.py  # Orchestrates the full pipeline
-│   └── llm_client.py    # Local LLM client (Ollama)
-│
-├── UI/
-│   └── app.py           # Optional UI entry (demo-oriented)
-│
-├── data/                # Source documents
-├── chroma_db/           # Persisted vector store
-├── evaluation/          # Evaluation scripts / artifacts
-├── evaluation score .txt
-├── Dockerfile.api
-├── requirements.txt
-├── .env
+├── src/                 # Core RAG logic (chunking, embedding, retrieval, reranking)
+├── data/                # Source documents (Tracked via Git LFS)
+├── chroma_db/           # Persisted vector store (Tracked via Git LFS)
+├── docker-compose.yml   # Multi-container orchestration
+├── Dockerfile.api       # Backend Docker image (Exposed on 8000 local / 7860 cloud)
+├── Dockerfile.ui        # Frontend Docker image (Exposed on 8501 local / 7860 cloud)
+├── requirements.txt     # Backend dependencies
+├── requirements.ui.txt  # Frontend dependencies
+├── .env.example         # Environment variable templates
+├── .gitattributes       # Git LFS configuration
 └── README.md
 ```
 
-## Running the Project (Local)
+## Running the Project (Local Testing)
 
-**1. Install Dependencies**
-
+**1. Clone and Setup Environment**
 ```bash
-pip install -r requirements.txt
-
+git clone [https://github.com/NYX-Samir/Advance-RAG-complete-Pipeline](https://github.com/NYX-Samir/Advance-RAG-complete-Pipeline)
+cd Advance-RAG-complete-Pipeline
 ```
 
-**2. Run FastAPI Locally**
-
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-
+Create a `.env` file in the root directory:
+```env
+GROQ_API_KEY=your_groq_api_key_here
+ENABLE_RERANK=true
+ENABLE_COMPRESSION=true
+DATA_PATH=./data
+CHROMA_DIR=./chroma_db
 ```
 
-**3. Run with Docker**
-
+**2. Launch with Docker Compose**
 ```bash
-docker build -f Dockerfile.api -t rag-api .
-docker run -p 8000:8000 rag-api
-
+docker-compose up --build -d
 ```
+* **Frontend UI:** Available at `http://localhost:8501`
+* **Backend API:** Available at `http://localhost:8000/docs`
 
-> **Note:** This project uses Ollama for local LLM inference. Ensure Ollama is running and the required model is available.
+## Cloud Deployment (Hugging Face Spaces)
 
-## Design Notes
-
-* The system is LLM-backend agnostic.
-* The local Ollama client can be replaced with a hosted LLM API or inference server in production.
-* Re-ranking and context compression are feature-flag controlled to balance quality and latency.
-* Designed for single-node, local deployment for learning and evaluation purposes.
-
-## Scope & Intent
-
-This project is intended to:
-
-* Demonstrate applied LLM and RAG system design
-* Explore retrieval quality trade-offs
-* Practice deployment-ready backend patterns
-
-It is not positioned as a large-scale production system, but as a strong foundation for applied AI engineering.
+This project is deployed using two separate Hugging Face Docker Spaces:
+1. **Backend Space:** Runs `Dockerfile.api` (Port mapped to 7860). Employs **Git LFS** to push `chroma.sqlite3` and large PDFs.
+2. **Frontend Space:** Runs `Dockerfile.ui` (Port mapped to 7860) and points `API_URL` to the remote backend Space.
 
 ## Further Reading
 
-For a detailed explanation of the design decisions, trade-offs, and evaluation methodology behind this RAG system, see the technical article:
+For a detailed explanation of the design decisions, trade-offs, and evaluation methodology behind the core RAG logic, see my technical article:
 
-**Designing a Production-Grade RAG Pipeline From Ingestion to Evaluation**  
-https://medium.com/@nyx0samir/designing-a-production-grade-rag-pipeline-from-ingestion-to-evaluation-cea50ff94130
+**Designing a Production-Grade RAG Pipeline From Ingestion to Evaluation** [Read on Medium](https://medium.com/@nyx0samir/designing-a-production-grade-rag-pipeline-from-ingestion-to-evaluation-cea50ff94130)
 
 ## License
 
 Open for learning, experimentation, and personal projects.
-
+```
